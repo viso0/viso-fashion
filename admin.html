@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VISO FASHION | Admin</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#080808;color:white;
+ font-family:Arial,sans-serif;padding:20px
+}
+.container{max-width:900px;margin:auto}
+h1{letter-spacing:4px}
+h2{margin-top:30px}
+.box{
+ background:#151515;border:1px solid #333;
+ padding:20px;margin:20px 0;border-radius:12px
+}
+input,textarea,select{
+ width:100%;padding:13px;margin:8px 0;
+ background:#080808;color:white;
+ border:1px solid #444;border-radius:6px
+}
+button{
+ padding:13px 20px;border:0;
+ background:white;color:black;
+ font-weight:bold;cursor:pointer;
+ margin:5px 3px;border-radius:5px
+}
+.delete{background:#b91c1c;color:white}
+#message{color:#aaa;margin:12px 0}
+#products{display:grid;gap:12px}
+.item{
+ background:#222;padding:15px;
+ border-radius:8px;display:flex;
+ gap:15px;align-items:center
+}
+.item img{width:75px;height:85px;object-fit:cover}
+.item button{font-size:11px}
+.preview{display:flex;gap:8px;flex-wrap:wrap}
+.preview img{width:75px;height:85px;object-fit:cover}
+.hidden{display:none}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>VISO.</h1>
+<p>FASHION ADMIN PANEL</p>
+
+<div class="box" id="loginBox">
+<h2>ADMIN LOGIN</h2>
+<input id="email" type="email" placeholder="Admin Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">LOGIN</button>
+<p id="loginMessage"></p>
+</div>
+
+<div id="dashboard" class="hidden">
+
+<div class="box">
+<h2>ADD / EDIT PRODUCT</h2>
+
+<input id="name" placeholder="Product Name">
+<textarea id="description" placeholder="Description"></textarea>
+<input id="price" type="number" placeholder="Price (₹)">
+<input id="category" placeholder="Category">
+
+<label>Product Photos (Multiple)</label>
+<input id="photos" type="file" accept="image/*" multiple>
+<div class="preview" id="preview"></div>
+
+<h3>Stock by Size</h3>
+<div id="stockFields"></div>
+
+<button onclick="saveProduct()">SAVE PRODUCT</button>
+<button onclick="resetForm()">CLEAR FORM</button>
+<button onclick="logout()">LOGOUT</button>
+
+<p id="message"></p>
+</div>
+
+<div class="box">
+<h2>YOUR PRODUCTS</h2>
+<div id="products">Loading...</div>
+</div>
+
+</div>
+</div>
+
+<script type="module">
+import { supabase } from './config.js';
+
+const $ = id => document.getElementById(id);
+
+let currentId = null;
+let existingImages = [];
+
+const sizes = ['S','M','L','XL','XXL'];
+
+$('stockFields').innerHTML = sizes.map(size =>
+ `<label>${size} Stock</label>
+ <input type="number" min="0" id="stock_${size}" value="0">`
+).join('');
+
+$('photos').addEventListener('change', () => {
+ $('preview').innerHTML = '';
+
+ [...$('photos').files].forEach(file => {
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(file);
+  $('preview').appendChild(img);
+ });
+});
+
+function message(text){
+ $('message').textContent = text;
+}
+
+async function checkSession(){
+ const {data} = await supabase.auth.getSession();
+
+ if(data.session){
+  $('loginBox').classList.add('hidden');
+  $('dashboard').classList.remove('hidden');
+  await loadProducts();
+ }
+}
+
+window.login = async function(){
+ const {error} = await supabase.auth.signInWithPassword({
+  email:$('email').value,
+  password:$('password').value
+ });
+
+ if(error){
+  $('loginMessage').textContent = error.message;
+  return;
+ }
+
+ $('loginBox').classList.add('hidden');
+ $('dashboard').classList.remove('hidden');
+ await loadProducts();
+};
+
+window.logout = async function(){
+ await supabase.auth.signOut();
+ location.reload();
+};
+
+async function uploadPhotos(){
+ const files = [...$('photos').files];
+ const uploaded = [];
+
+ for(const file of files){
+  if(!file.type.startsWith('image/')){
+   throw new Error('Only image files are allowed');
+  }
+
+  if(file.size > 5 * 1024 * 1024){
+   throw new Error('Each image must be under 5 MB');
+  }
+
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path = `${crypto.randomUUID()}-${safeName}`;
+
+  const {error} = await supabase.storage
+   .from('product-images')
+   .upload(path,file,{contentType:file.type});
+
+  if(error) throw error;
+
+  const {data} = supabase.storage
+   .from('product-images')
+   .getPublicUrl(path);
+
+  uploaded.push({
+   url:data.publicUrl,
+   path:path
+  });
+ }
+
+ return uploaded;
+}
+
+window.saveProduct = async function(){
+ try{
+  message('Saving product...');
+
+  const name = $('name').value.trim();
+  const price = Number($('price').value);
+
+  if(!name || !Number.isFinite(price) || price <= 0){
+   throw new Error('Enter a product name and valid price');
+  }
+
+  const newImages = await uploadPhotos();
+  const images = [...existingImages,...newImages];
+
+  const stock = {};
+  sizes.forEach(size => {
+   stock[size] = Math.max(0,Number($(`stock_${size}`).value)||0);
+  });
+
+  const product = {
+   name,
+   description:$('description').value,
+   price,
+   category:$('category').value,
+   images,
+   sizes:stock
+  };
+
+  let result;
+
+  if(currentId){
+   result = await supabase.from('products')
+    .update(product).eq('id',currentId);
+  }else{
+   result = await supabase.from('products')
+    .insert(product);
+  }
+
+  if(result.error) throw result.error;
+
+  message('Product saved successfully!');
+  resetForm();
+  await loadProducts();
+
+ }catch(error){
+  message('Error: '+error.message);
+ }
+};
+
+window.editProduct = async function(id){
+ const {data,error} = await supabase
+  .from('products').select('*').eq('id',id).single();
+
+ if(error){message(error.message);return;}
+
+ currentId = id;
+ existingImages = Array.isArray(data.images) ? data.images : [];
+
+ $('name').value = data.name || '';
+ $('description').value = data.description || '';
+ $('price').value = data.price || '';
+ $('category').value = data.category || '';
+
+ sizes.forEach(size => {
+  $(`stock_${size}`).value = data.sizes?.[size] || 0;
+ });
+
+ $('preview').innerHTML = existingImages.map(img =>
+  `<img src="${img.url || img}" alt="Product photo">`
+ ).join('');
+
+ window.scrollTo({top:0,behavior:'smooth'});
+};
+
+window.deleteProduct = async function(id){
+ if(!confirm('Delete this product?')) return;
+
+ const {data,error} = await supabase
+  .from('products').select('images').eq('id',id).single();
+
+ if(error){message(error.message);return;}
+
+ const paths = (data.images || [])
+  .filter(img => img && img.path)
+  .map(img => img.path);
+
+ if(paths.length){
+  const {error:storageError} = await supabase.storage
+   .from('product-images').remove(paths);
+
+  if(storageError){message(storageError.message);return;}
+ }
+
+ const {error:deleteError} = await supabase
+  .from('products').delete().eq('id',id);
+
+ if(deleteError){message(deleteError.message);return;}
+
+ message('Product deleted.');
+ await loadProducts();
+};
+
+window.resetForm = function(){
+ currentId = null;
+ existingImages = [];
+
+ ['name','description','price','category','photos'].forEach(id=>{
+  $(id).value='';
+ });
+
+ sizes.forEach(size=>$(`stock_${size}`).value=0);
+ $('preview').innerHTML='';
+};
+
+async function loadProducts(){
+ const {data,error} = await supabase
+  .from('products').select('*').order('id',{ascending:false});
+
+ if(error){
+  $('products').textContent=error.message;
+  return;
+ }
+
+ $('products').innerHTML='';
+
+ data.forEach(product=>{
+  const item=document.createElement('div');
+  item.className='item';
+
+  const image=product.images?.[0];
+  const img=document.createElement('img');
+
+  if(image) img.src=image.url || image;
+
+  const info=document.createElement('div');
+  info.style.flex='1';
+
+  const title=document.createElement('strong');
+  title.textContent=product.name;
+
+  const price=document.createElement('p');
+  price.textContent='₹'+product.price;
+
+  info.append(title,price);
+
+  const edit=document.createElement('button');
+  edit.textContent='EDIT';
+  edit.onclick=()=>editProduct(product.id);
+
+  const del=document.createElement('button');
+  del.textContent='DELETE';
+  del.className='delete';
+  del.onclick=()=>deleteProduct(product.id);
+
+  item.append(img,info,edit,del);
+  $('products').appendChild(item);
+ });
+}
+
+checkSession();
+</script>
+</body>
+  </html>
