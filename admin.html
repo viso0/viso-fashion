@@ -2,350 +2,459 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VISO FASHION | Admin</title>
 
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;background:#080808;color:white;
- font-family:Arial,sans-serif;padding:20px
+ margin:0;background:#090909;color:#fff;
+ font-family:Arial,sans-serif;
 }
-.container{max-width:900px;margin:auto}
-h1{letter-spacing:4px}
-h2{margin-top:30px}
-.box{
- background:#151515;border:1px solid #333;
- padding:20px;margin:20px 0;border-radius:12px
+header{
+ padding:20px;background:#111;
+ border-bottom:1px solid #333;
+ display:flex;justify-content:space-between;
+ align-items:center;
+}
+.logo{font-size:22px;font-weight:bold;letter-spacing:3px}
+button{
+ background:#fff;color:#000;border:0;
+ padding:11px 16px;cursor:pointer;
+ border-radius:5px;font-weight:bold;
 }
 input,textarea,select{
- width:100%;padding:13px;margin:8px 0;
- background:#080808;color:white;
- border:1px solid #444;border-radius:6px
+ width:100%;padding:12px;margin:7px 0 14px;
+ background:#171717;color:white;
+ border:1px solid #444;border-radius:5px;
 }
-button{
- padding:13px 20px;border:0;
- background:white;color:black;
- font-weight:bold;cursor:pointer;
- margin:5px 3px;border-radius:5px
+.layout{display:flex;min-height:90vh}
+nav{
+ width:190px;background:#111;padding:15px;
 }
-.delete{background:#b91c1c;color:white}
-#message{color:#aaa;margin:12px 0}
-#products{display:grid;gap:12px}
-.item{
- background:#222;padding:15px;
- border-radius:8px;display:flex;
- gap:15px;align-items:center
+nav button{
+ display:block;width:100%;margin:8px 0;
+ text-align:left;background:#222;color:white;
 }
-.item img{width:75px;height:85px;object-fit:cover}
-.item button{font-size:11px}
-.preview{display:flex;gap:8px;flex-wrap:wrap}
-.preview img{width:75px;height:85px;object-fit:cover}
-.hidden{display:none}
+main{flex:1;padding:22px;min-width:0}
+.section{display:none}
+.section.active{display:block}
+.cards{
+ display:grid;grid-template-columns:repeat(4,1fr);
+ gap:12px;margin:20px 0;
+}
+.card{
+ background:#171717;padding:18px;
+ border:1px solid #333;border-radius:8px;
+}
+.card h2{margin:8px 0}
+table{width:100%;border-collapse:collapse;min-width:550px}
+th,td{padding:12px;border-bottom:1px solid #333;text-align:left}
+.table-wrap{overflow-x:auto}
+.form{
+ max-width:600px;background:#151515;
+ padding:20px;border-radius:8px;margin:15px 0;
+}
+.small{font-size:12px;color:#aaa}
+.danger{background:#a52222;color:white}
+.green{color:#5cdb8b}
+#app{display:none}
+#login{
+ max-width:400px;margin:80px auto;
+ padding:25px;background:#151515;border-radius:10px;
+}
+@media(max-width:750px){
+ .layout{display:block}
+ nav{width:100%;display:grid;grid-template-columns:1fr 1fr}
+ nav button{font-size:12px}
+ .cards{grid-template-columns:1fr 1fr}
+ main{padding:12px}
+}
 </style>
 </head>
 
 <body>
-<div class="container">
 
-<h1>VISO.</h1>
-<p>FASHION ADMIN PANEL</p>
-
-<div class="box" id="loginBox">
-<h2>ADMIN LOGIN</h2>
+<div id="login">
+<h2>VISO ADMIN</h2>
+<p class="small">Secure Administrator Login</p>
 <input id="email" type="email" placeholder="Admin Email">
 <input id="password" type="password" placeholder="Password">
 <button onclick="login()">LOGIN</button>
-<p id="loginMessage"></p>
+<p id="loginMsg"></p>
 </div>
 
-<div id="dashboard" class="hidden">
+<div id="app">
 
-<div class="box">
-<h2>ADD / EDIT PRODUCT</h2>
+<header>
+<div class="logo">VISO FASHION</div>
+<button onclick="logout()">LOGOUT</button>
+</header>
 
-<input id="name" placeholder="Product Name">
-<textarea id="description" placeholder="Description"></textarea>
-<input id="price" type="number" placeholder="Price (₹)">
-<input id="category" placeholder="Category">
+<div class="layout">
 
-<label>Product Photos (Multiple)</label>
-<input id="photos" type="file" accept="image/*" multiple>
-<div class="preview" id="preview"></div>
+<nav>
+<button onclick="show('dashboard')">Dashboard</button>
+<button onclick="show('products')">Products</button>
+<button onclick="show('orders')">Orders</button>
+<button onclick="show('inventory')">Inventory</button>
+<button onclick="show('customers')">Customers</button>
+<button onclick="show('payments')">Payments</button>
+<button onclick="show('discounts')">Discounts</button>
+<button onclick="show('settings')">Settings</button>
+</nav>
 
-<h3>Stock by Size</h3>
-<div id="stockFields"></div>
+<main>
+
+<section id="dashboard" class="section active">
+<h1>Dashboard Overview</h1>
+<div class="cards">
+<div class="card">Total Products<h2 id="totalProducts">0</h2></div>
+<div class="card">Total Orders<h2 id="totalOrders">0</h2></div>
+<div class="card">Customers<h2 id="totalCustomers">0</h2></div>
+<div class="card">Revenue<h2 id="revenue">₹0</h2></div>
+</div>
+<p class="small">Revenue is calculated from recorded orders. It is not verified payment revenue.</p>
+<button onclick="refreshAll()">Refresh Dashboard</button>
+</section>
+
+<section id="products" class="section">
+<h1>Products</h1>
+
+<div class="form">
+<h3>Add Product</h3>
+<input id="pname" placeholder="Product Name">
+<textarea id="pdesc" placeholder="Description"></textarea>
+<input id="pprice" type="number" placeholder="Price">
+<input id="pcategory" placeholder="Category">
+
+<h4>Stock by Size</h4>
+<div id="sizeInputs"></div>
+
+<label>Product Photos</label>
+<input id="pimages" type="file" accept="image/*" multiple>
+<p class="small">Each image must be under 5 MB.</p>
 
 <button onclick="saveProduct()">SAVE PRODUCT</button>
-<button onclick="resetForm()">CLEAR FORM</button>
-<button onclick="logout()">LOGOUT</button>
-
-<p id="message"></p>
+<p id="productMsg"></p>
 </div>
 
-<div class="box">
-<h2>YOUR PRODUCTS</h2>
-<div id="products">Loading...</div>
+<h3>All Products</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Name</th><th>Price</th><th>Category</th><th>Stock</th><th>Action</th></tr></thead>
+<tbody id="productRows"></tbody>
+</table>
 </div>
+</section>
 
+<section id="orders" class="section">
+<h1>Orders</h1>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Order ID</th><th>Amount</th><th>Status</th><th>Date</th><th>Update</th></tr></thead>
+<tbody id="orderRows"></tbody>
+</table>
+</div>
+</section>
+
+<section id="inventory" class="section">
+<h1>Inventory</h1>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Product</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th><th>Total</th></tr></thead>
+<tbody id="inventoryRows"></tbody>
+</table>
+</div>
+</section>
+
+<section id="customers" class="section">
+<h1>Customers</h1>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th></tr></thead>
+<tbody id="customerRows"></tbody>
+</table>
+</div>
+</section>
+
+<section id="payments" class="section">
+<h1>Payments</h1>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Order ID</th><th>Amount</th><th>Status</th><th>Reference</th></tr></thead>
+<tbody id="paymentRows"></tbody>
+</table>
+</div>
+</section>
+
+<section id="discounts" class="section">
+<h1>Discount Coupons</h1>
+<div class="form">
+<input id="couponCode" placeholder="Coupon Code">
+<input id="couponPercent" type="number" placeholder="Discount %">
+<button onclick="addCoupon()">CREATE COUPON</button>
+<p id="couponMsg"></p>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Code</th><th>Discount</th><th>Active</th><th>Action</th></tr></thead>
+<tbody id="couponRows"></tbody>
+</table>
+</div>
+</section>
+
+<section id="settings" class="section">
+<h1>Store Settings</h1>
+<div class="form">
+<label>Store Name</label>
+<input value="VISO FASHION" readonly>
+<label>Brand Tagline</label>
+<input value="DEFINE YOUR OWN." readonly>
+<p class="small">Payment gateway, shipping and domain settings are not connected yet.</p>
+</div>
+</section>
+
+</main>
 </div>
 </div>
 
 <script type="module">
-import { supabase } from './config.js';
 
-const $ = id => document.getElementById(id);
+import {supabase} from './config.js';
 
-let currentId = null;
-let existingImages = [];
+const sizes=['S','M','L','XL','XXL'];
 
-const sizes = ['S','M','L','XL','XXL'];
+document.getElementById('sizeInputs').innerHTML=
+sizes.map(s=>`<label>${s} Stock</label>
+<input type="number" min="0" id="size_${s}" value="0">`).join('');
 
-$('stockFields').innerHTML = sizes.map(size =>
- `<label>${size} Stock</label>
- <input type="number" min="0" id="stock_${size}" value="0">`
-).join('');
-
-$('photos').addEventListener('change', () => {
- $('preview').innerHTML = '';
-
- [...$('photos').files].forEach(file => {
-  const img = document.createElement('img');
-  img.src = URL.createObjectURL(file);
-  $('preview').appendChild(img);
- });
-});
-
-function message(text){
- $('message').textContent = text;
-}
-
-async function checkSession(){
- const {data} = await supabase.auth.getSession();
-
- if(data.session){
-  $('loginBox').classList.add('hidden');
-  $('dashboard').classList.remove('hidden');
-  await loadProducts();
- }
-}
-
-window.login = async function(){
- const {error} = await supabase.auth.signInWithPassword({
-  email:$('email').value,
-  password:$('password').value
- });
-
- if(error){
-  $('loginMessage').textContent = error.message;
-  return;
- }
-
- $('loginBox').classList.add('hidden');
- $('dashboard').classList.remove('hidden');
- await loadProducts();
+window.show=function(id){
+ document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
 };
 
-window.logout = async function(){
+window.login=async function(){
+ const {data,error}=await supabase.auth.signInWithPassword({
+  email:document.getElementById('email').value,
+  password:document.getElementById('password').value
+ });
+ if(error){
+  document.getElementById('loginMsg').textContent=error.message;
+  return;
+ }
+ await startApp();
+};
+
+window.logout=async function(){
  await supabase.auth.signOut();
  location.reload();
 };
 
-async function uploadPhotos(){
- const files = [...$('photos').files];
- const uploaded = [];
-
- for(const file of files){
-  if(!file.type.startsWith('image/')){
-   throw new Error('Only image files are allowed');
-  }
-
-  if(file.size > 5 * 1024 * 1024){
-   throw new Error('Each image must be under 5 MB');
-  }
-
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const path = `${crypto.randomUUID()}-${safeName}`;
-
-  const {error} = await supabase.storage
-   .from('product-images')
-   .upload(path,file,{contentType:file.type});
-
-  if(error) throw error;
-
-  const {data} = supabase.storage
-   .from('product-images')
-   .getPublicUrl(path);
-
-  uploaded.push({
-   url:data.publicUrl,
-   path:path
-  });
- }
-
- return uploaded;
+async function startApp(){
+ const {data:{user}}=await supabase.auth.getUser();
+ if(!user)return;
+ document.getElementById('login').style.display='none';
+ document.getElementById('app').style.display='block';
+ await refreshAll();
 }
 
-window.saveProduct = async function(){
- try{
-  message('Saving product...');
-
-  const name = $('name').value.trim();
-  const price = Number($('price').value);
-
-  if(!name || !Number.isFinite(price) || price <= 0){
-   throw new Error('Enter a product name and valid price');
-  }
-
-  const newImages = await uploadPhotos();
-  const images = [...existingImages,...newImages];
-
-  const stock = {};
-  sizes.forEach(size => {
-   stock[size] = Math.max(0,Number($(`stock_${size}`).value)||0);
-  });
-
-  const product = {
-   name,
-   description:$('description').value,
-   price,
-   category:$('category').value,
-   images,
-   sizes:stock
-  };
-
-  let result;
-
-  if(currentId){
-   result = await supabase.from('products')
-    .update(product).eq('id',currentId);
-  }else{
-   result = await supabase.from('products')
-    .insert(product);
-  }
-
-  if(result.error) throw result.error;
-
-  message('Product saved successfully!');
-  resetForm();
-  await loadProducts();
-
- }catch(error){
-  message('Error: '+error.message);
- }
-};
-
-window.editProduct = async function(id){
- const {data,error} = await supabase
-  .from('products').select('*').eq('id',id).single();
-
- if(error){message(error.message);return;}
-
- currentId = id;
- existingImages = Array.isArray(data.images) ? data.images : [];
-
- $('name').value = data.name || '';
- $('description').value = data.description || '';
- $('price').value = data.price || '';
- $('category').value = data.category || '';
-
- sizes.forEach(size => {
-  $(`stock_${size}`).value = data.sizes?.[size] || 0;
- });
-
- $('preview').innerHTML = existingImages.map(img =>
-  `<img src="${img.url || img}" alt="Product photo">`
- ).join('');
-
- window.scrollTo({top:0,behavior:'smooth'});
-};
-
-window.deleteProduct = async function(id){
- if(!confirm('Delete this product?')) return;
-
- const {data,error} = await supabase
-  .from('products').select('images').eq('id',id).single();
-
- if(error){message(error.message);return;}
-
- const paths = (data.images || [])
-  .filter(img => img && img.path)
-  .map(img => img.path);
-
- if(paths.length){
-  const {error:storageError} = await supabase.storage
-   .from('product-images').remove(paths);
-
-  if(storageError){message(storageError.message);return;}
- }
-
- const {error:deleteError} = await supabase
-  .from('products').delete().eq('id',id);
-
- if(deleteError){message(deleteError.message);return;}
-
- message('Product deleted.');
+window.refreshAll=async function(){
+ await loadDashboard();
  await loadProducts();
+ await loadOrders();
+ await loadCustomers();
+ await loadPayments();
+ await loadCoupons();
 };
 
-window.resetForm = function(){
- currentId = null;
- existingImages = [];
+async function loadDashboard(){
+ const [p,o,c]=await Promise.all([
+  supabase.from('products').select('*',{count:'exact',head:true}),
+  supabase.from('orders').select('total_amount'),
+  supabase.from('customers').select('*',{count:'exact',head:true})
+ ]);
+ document.getElementById('totalProducts').textContent=p.count||0;
+ document.getElementById('totalOrders').textContent=o.data?.length||0;
+ document.getElementById('totalCustomers').textContent=c.count||0;
+ const total=(o.data||[]).reduce((sum,x)=>sum+Number(x.total_amount||0),0);
+ document.getElementById('revenue').textContent='₹'+total.toLocaleString('en-IN');
+}
 
- ['name','description','price','category','photos'].forEach(id=>{
-  $(id).value='';
- });
+window.saveProduct=async function(){
+ const name=document.getElementById('pname').value.trim();
+ const price=Number(document.getElementById('pprice').value);
+ const files=[...document.getElementById('pimages').files];
 
- sizes.forEach(size=>$(`stock_${size}`).value=0);
- $('preview').innerHTML='';
-};
-
-async function loadProducts(){
- const {data,error} = await supabase
-  .from('products').select('*').order('id',{ascending:false});
-
- if(error){
-  $('products').textContent=error.message;
+ if(!name||!price||price<=0){
+  alert('Enter a product name and valid price.');
+  return;
+ }
+ if(files.some(f=>f.size>5*1024*1024)){
+  alert('Each image must be under 5 MB.');
   return;
  }
 
- $('products').innerHTML='';
+ const images=[];
+ for(const file of files){
+  if(!file.type.startsWith('image/')){
+   alert('Please select image files only.');
+   return;
+  }
+  const path=Date.now()+'_'+Math.random().toString(36).slice(2)+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const {error}=await supabase.storage.from('product-images').upload(path,file);
+  if(error){
+   alert('Image upload error: '+error.message);
+   return;
+  }
+  const {data}=supabase.storage.from('product-images').getPublicUrl(path);
+  images.push({url:data.publicUrl,path});
+ }
 
- data.forEach(product=>{
-  const item=document.createElement('div');
-  item.className='item';
+ const stock={};
+ sizes.forEach(s=>stock[s]=Number(document.getElementById('size_'+s).value)||0);
 
-  const image=product.images?.[0];
-  const img=document.createElement('img');
-
-  if(image) img.src=image.url || image;
-
-  const info=document.createElement('div');
-  info.style.flex='1';
-
-  const title=document.createElement('strong');
-  title.textContent=product.name;
-
-  const price=document.createElement('p');
-  price.textContent='₹'+product.price;
-
-  info.append(title,price);
-
-  const edit=document.createElement('button');
-  edit.textContent='EDIT';
-  edit.onclick=()=>editProduct(product.id);
-
-  const del=document.createElement('button');
-  del.textContent='DELETE';
-  del.className='delete';
-  del.onclick=()=>deleteProduct(product.id);
-
-  item.append(img,info,edit,del);
-  $('products').appendChild(item);
+ const {error}=await supabase.from('products').insert({
+  name,
+  description:document.getElementById('pdesc').value,
+  price,
+  category:document.getElementById('pcategory').value,
+  images,
+  sizes:stock
  });
+
+ if(error){
+  document.getElementById('productMsg').textContent=error.message;
+  return;
+ }
+
+ document.getElementById('productMsg').textContent='Product saved successfully!';
+ document.getElementById('pname').value='';
+ document.getElementById('pdesc').value='';
+ document.getElementById('pprice').value='';
+ document.getElementById('pcategory').value='';
+ document.getElementById('pimages').value='';
+ sizes.forEach(s=>document.getElementById('size_'+s).value=0);
+ await refreshAll();
+};
+
+async function loadProducts(){
+ const {data,error}=await supabase.from('products').select('*').order('created_at',{ascending:false});
+ if(error){document.getElementById('productRows').innerHTML='<tr><td colspan="5">'+error.message+'</td></tr>';return;}
+ document.getElementById('productRows').innerHTML=(data||[]).map(p=>
+ `<tr>
+ <td>${safe(p.name)}</td>
+ <td>₹${Number(p.price).toLocaleString('en-IN')}</td>
+ <td>${safe(p.category||'')}</td>
+ <td>${stockTotal(p.sizes)}</td>
+ <td><button class="danger" onclick="deleteProduct('${p.id}')">Delete</button></td>
+ </tr>`).join('');
+ document.getElementById('inventoryRows').innerHTML=(data||[]).map(p=>{
+ const s=p.sizes||{};
+ return `<tr><td>${safe(p.name)}</td>${sizes.map(x=>`<td>${Number(s[x]||0)}</td>`).join('')}<td>${stockTotal(s)}</td></tr>`;
+ }).join('');
 }
 
-checkSession();
+function stockTotal(s){
+ return sizes.reduce((n,x)=>n+Number((s||{})[x]||0),0);
+}
+
+window.deleteProduct=async function(id){
+ if(!confirm('Delete this product?'))return;
+ const {error}=await supabase.from('products').delete().eq('id',id);
+ if(error){alert(error.message);return;}
+ await refreshAll();
+};
+
+async function loadOrders(){
+ const {data,error}=await supabase.from('orders').select('*').order('created_at',{ascending:false});
+ document.getElementById('orderRows').innerHTML=error?
+ `<tr><td colspan="5">${error.message}</td></tr>`:
+ (data||[]).map(o=>`<tr>
+ <td>${safe(o.id.slice(0,8))}</td>
+ <td>₹${Number(o.total_amount).toLocaleString('en-IN')}</td>
+ <td>${safe(o.order_status)}</td>
+ <td>${o.created_at?new Date(o.created_at).toLocaleDateString('en-IN'):''}</td>
+ <td><select onchange="updateOrder('${o.id}',this.value)">
+ ${['Pending','Processing','Shipped','Delivered','Cancelled'].map(s=>
+ `<option ${o.order_status===s?'selected':''}>${s}</option>`).join('')}
+ </select></td></tr>`).join('');
+}
+
+window.updateOrder=async function(id,status){
+ const {error}=await supabase.from('orders').update({order_status:status}).eq('id',id);
+ if(error)alert(error.message);
+ else await loadOrders();
+};
+
+async function loadCustomers(){
+ const {data,error}=await supabase.from('customers').select('*').order('created_at',{ascending:false});
+ document.getElementById('customerRows').innerHTML=error?
+ `<tr><td colspan="4">${error.message}</td></tr>`:
+ (data||[]).map(c=>`<tr>
+ <td>${safe(c.name)}</td><td>${safe(c.email)}</td>
+ <td>${safe(c.phone)}</td>
+ <td>${c.created_at?new Date(c.created_at).toLocaleDateString('en-IN'):''}</td>
+ </tr>`).join('');
+}
+
+async function loadPayments(){
+ const {data,error}=await supabase.from('payments').select('*').order('created_at',{ascending:false});
+ document.getElementById('paymentRows').innerHTML=error?
+ `<tr><td colspan="4">${error.message}</td></tr>`:
+ (data||[]).map(p=>`<tr>
+ <td>${safe((p.order_id||'').slice(0,8))}</td>
+ <td>₹${Number(p.amount).toLocaleString('en-IN')}</td>
+ <td>${safe(p.payment_status)}</td>
+ <td>${safe(p.payment_reference)}</td>
+ </tr>`).join('');
+}
+
+window.addCoupon=async function(){
+ const code=document.getElementById('couponCode').value.trim().toUpperCase();
+ const percent=Number(document.getElementById('couponPercent').value);
+ if(!code||percent<1||percent>100){
+  alert('Enter a valid coupon and discount between 1 and 100.');
+  return;
+ }
+ const {error}=await supabase.from('discounts').insert({
+  code,discount_percent:percent
+ });
+ document.getElementById('couponMsg').textContent=error?error.message:'Coupon created!';
+ if(!error){
+  document.getElementById('couponCode').value='';
+  document.getElementById('couponPercent').value='';
+  await loadCoupons();
+ }
+};
+
+async function loadCoupons(){
+ const {data,error}=await supabase.from('discounts').select('*').order('created_at',{ascending:false});
+ document.getElementById('couponRows').innerHTML=error?
+ `<tr><td colspan="4">${error.message}</td></tr>`:
+ (data||[]).map(c=>`<tr>
+ <td>${safe(c.code)}</td><td>${c.discount_percent}%</td>
+ <td>${c.active?'Yes':'No'}</td>
+ <td><button class="danger" onclick="deleteCoupon('${c.id}')">Delete</button></td>
+ </tr>`).join('');
+}
+
+window.deleteCoupon=async function(id){
+ if(!confirm('Delete this coupon?'))return;
+ const {error}=await supabase.from('discounts').delete().eq('id',id);
+ if(error)alert(error.message);
+ else await loadCoupons();
+};
+
+function safe(value){
+ return String(value??'').replace(/[&<>"']/g,c=>({
+ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+ }[c]));
+}
+
+const {data:{session}}=await supabase.auth.getSession();
+if(session)await startApp();
+
 </script>
 </body>
-  </html>
+</html>
