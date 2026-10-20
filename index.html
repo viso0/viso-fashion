@@ -4,20 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VISO FASHION — Define Your Own</title>
-
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#090909;color:white;font-family:Arial,sans-serif}
+body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
 header{height:75px;padding:0 6%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #292929;position:sticky;top:0;background:#090909;z-index:5}
 .logo{font-size:25px;font-weight:900;letter-spacing:5px}
 nav{display:flex;gap:25px}
 nav a{color:white;text-decoration:none;font-size:13px}
-.cart-btn{background:white;color:black;border:0;padding:11px 17px;font-weight:bold;cursor:pointer}
+.cart-btn{background:white;color:black;border:0;padding:11px 17px;font-weight:bold}
 .hero{min-height:480px;padding:100px 7%;display:flex;flex-direction:column;justify-content:center;background:radial-gradient(circle at 80% 50%,#333 0,#151515 30%,#090909 70%)}
 .hero small{letter-spacing:5px;color:#aaa}
 .hero h1{font-size:clamp(48px,9vw,100px);line-height:.95;margin:25px 0;font-weight:900;letter-spacing:-5px}
 .hero p{color:#aaa;max-width:420px;line-height:1.7}
-.hero button,.buy{padding:15px 25px;background:white;color:black;border:0;font-weight:bold;cursor:pointer;width:max-content}
+.hero button,.buy,.primary{padding:15px 25px;background:white;color:black;border:0;font-weight:bold;width:max-content}
 .section{padding:65px 6%}
 .heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
 .heading h2{font-size:30px;letter-spacing:2px}
@@ -28,18 +29,29 @@ nav a{color:white;text-decoration:none;font-size:13px}
 .product-info h3{margin:0 0 9px}
 .price{font-size:17px;font-weight:bold}
 .stock{color:#999;font-size:12px;margin:10px 0}
-.product-info button{width:100%;padding:12px;background:white;color:black;border:0;font-weight:bold;cursor:pointer}
+.product-info button{width:100%;padding:12px;background:white;color:black;border:0;font-weight:bold}
 .empty{text-align:center;color:#aaa;padding:50px 10px;grid-column:1/-1}
 .about{background:#151515;text-align:center;padding:70px 10%}
 .about h2{font-size:38px}
 .about p{color:#aaa;line-height:1.8}
 footer{padding:30px;text-align:center;color:#888;border-top:1px solid #333;font-size:12px}
-#modal,#cartPanel{display:none;position:fixed;inset:0;background:#000d;z-index:10;align-items:center;justify-content:center;padding:15px}
-.modal-box,.cart-box{background:#171717;padding:25px;width:100%;max-width:430px;max-height:90vh;overflow:auto;border:1px solid #444}
+#modal,#cartPanel,#checkoutPanel{display:none;position:fixed;inset:0;background:#000d;z-index:10;align-items:center;justify-content:center;padding:15px}
+.modal-box,.cart-box,.checkout-box{background:#171717;padding:25px;width:100%;max-width:480px;max-height:92vh;overflow:auto;border:1px solid #444}
 .modal-box img{width:100%;max-height:300px;object-fit:contain;background:#222}
-.modal-box select{width:100%;padding:13px;background:#222;color:white;margin:12px 0}
-.close{float:right;background:none;color:white;border:0;font-size:23px;cursor:pointer}
-#cartItems{line-height:2}
+.modal-box select,.field input,.field textarea{width:100%;padding:13px;background:#222;color:white;border:1px solid #444;margin:7px 0 14px;border-radius:2px}
+.close{float:right;background:none;color:white;border:0;font-size:25px}
+#cartItems{line-height:1.7}
+.cart-line{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #333}
+.cart-line small{color:#aaa}
+.qty{display:flex;align-items:center;gap:8px;margin-top:7px}
+.qty button{background:#333;color:#fff;border:0;padding:5px 10px}
+.cart-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.secondary{padding:13px 18px;background:#292929;color:#fff;border:1px solid #555}
+.checkout-box h2{margin-top:5px}
+.field label{font-size:13px;color:#ccc}
+.note{font-size:12px;color:#aaa;line-height:1.6}
+.total-row{display:flex;justify-content:space-between;border-top:1px solid #444;padding-top:12px;font-weight:bold}
+.success{display:none;padding:15px;border:1px solid #777;margin-top:15px;line-height:1.6}
 @media(max-width:750px){
  nav{display:none}
  #products{grid-template-columns:repeat(2,1fr);gap:10px}
@@ -49,206 +61,168 @@ footer{padding:30px;text-align:center;color:#888;border-top:1px solid #333;font-
  .hero h1{letter-spacing:-3px}
  .section{padding:45px 4%}
 }
-@media(max-width:400px){
- #products{grid-template-columns:1fr}
- .product img{height:300px}
-}
+@media(max-width:400px){#products{grid-template-columns:1fr}.product img{height:300px}}
 </style>
 </head>
-
 <body>
-
 <header>
-<div class="logo">VISO</div>
-<nav>
-<a href="#">HOME</a>
-<a href="#shop">SHOP</a>
-<a href="#about">ABOUT</a>
-</nav>
-<button class="cart-btn" onclick="openCart()">CART (<span id="cartCount">0</span>)</button>
+ <div class="logo">VISO</div>
+ <nav><a href="#">HOME</a><a href="#shop">SHOP</a><a href="#about">ABOUT</a></nav>
+ <button class="cart-btn" onclick="openCart()">CART (<span id="cartCount">0</span>)</button>
 </header>
 
 <section class="hero">
-<small>VISO FASHION — DROP 001</small>
-<h1>DEFINE<br>YOUR OWN.</h1>
-<p>Beyond Trends. Beyond Limits. Define Your Identity.</p>
-<button onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">EXPLORE COLLECTION</button>
+ <small>VISO FASHION — DROP 001</small>
+ <h1>DEFINE<br>YOUR OWN.</h1>
+ <p>Beyond Trends. Beyond Limits. Define Your Identity.</p>
+ <button onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">EXPLORE COLLECTION</button>
 </section>
 
 <section class="section" id="shop">
-<div class="heading">
-<h2>NEW COLLECTION</h2>
-<span class="small">DROP 001</span>
-</div>
-
-<div id="products">
-<div class="empty">Loading collection...</div>
-</div>
+ <div class="heading"><h2>NEW COLLECTION</h2><span>DROP 001</span></div>
+ <div id="products"><div class="empty">Loading collection...</div></div>
 </section>
 
 <section class="about" id="about">
-<h2>BEYOND TRENDS.</h2>
-<p>VISO is built for people who define their own identity. Premium style, everyday comfort and a different perspective.</p>
-<h3>DEFINE YOUR OWN.</h3>
+ <h2>BEYOND TRENDS.</h2>
+ <p>VISO is built for people who define their own identity. Premium style, everyday comfort and a different perspective.</p>
+ <h3>DEFINE YOUR OWN.</h3>
 </section>
-
 <footer>© 2026 VISO FASHION. ALL RIGHTS RESERVED.</footer>
 
-<div id="modal">
-<div class="modal-box">
-<button class="close" onclick="closeModal()">×</button>
-<div id="productDetail"></div>
-</div>
-</div>
+<div id="modal"><div class="modal-box">
+ <button class="close" onclick="closeModal()">×</button><div id="productDetail"></div>
+</div></div>
 
-<div id="cartPanel">
-<div class="cart-box">
-<button class="close" onclick="closeCart()">×</button>
-<h2>YOUR CART</h2>
-<div id="cartItems">Your cart is empty.</div>
-<h3 id="cartTotal">Total: ₹0</h3>
-<p style="color:#aaa;font-size:12px">Online checkout is coming soon. Orders are not being placed yet.</p>
-<button class="buy" onclick="closeCart()">CONTINUE SHOPPING</button>
-</div>
-</div>
+<div id="cartPanel"><div class="cart-box">
+ <button class="close" onclick="closeCart()">×</button>
+ <h2>YOUR CART</h2><div id="cartItems">Your cart is empty.</div>
+ <div class="total-row"><span>Subtotal</span><span id="cartTotal">₹0</span></div>
+ <p class="note">Shipping and final order confirmation will be shown when the real checkout is connected.</p>
+ <div class="cart-actions">
+  <button class="primary" id="checkoutButton" onclick="openCheckout()">PROCEED TO CHECKOUT</button>
+  <button class="secondary" onclick="closeCart()">CONTINUE SHOPPING</button>
+ </div>
+</div></div>
+
+<div id="checkoutPanel"><div class="checkout-box">
+ <button class="close" onclick="closeCheckout()">×</button>
+ <h2>CHECKOUT PREVIEW</h2>
+ <p class="note">This is a test preview only. It does not place an order, collect or transmit your details, or accept payment.</p>
+ <div id="checkoutSummary"></div>
+ <form id="checkoutForm">
+  <div class="field"><label for="customerName">Full name</label><input id="customerName" autocomplete="name" required maxlength="80" placeholder="Your name"></div>
+  <div class="field"><label for="customerEmail">Email</label><input id="customerEmail" type="email" autocomplete="email" required maxlength="120" placeholder="you@example.com"></div>
+  <div class="field"><label for="customerPhone">Phone number</label><input id="customerPhone" type="tel" autocomplete="tel" required pattern="[0-9 +()-]{8,18}" placeholder="Phone number"></div>
+  <div class="field"><label for="customerAddress">Delivery address</label><textarea id="customerAddress" rows="3" required maxlength="300" placeholder="Address (test only)"></textarea></div>
+  <button class="primary" type="submit">PREVIEW TEST ORDER</button>
+ </form>
+ <div class="success" id="testSuccess" role="status"></div>
+</div></div>
 
 <script type="module">
 import {supabase} from './config.js';
 
 let products=[];
 let cart=[];
-
 const money=n=>'₹'+Number(n||0).toLocaleString('en-IN');
-
-function safe(v){
- return String(v??'').replace(/[&<>"']/g,c=>({
- '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
- }[c]));
-}
-
+function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function imageOf(p){
  const imgs=Array.isArray(p.images)?p.images:[];
- return imgs[0]?.url || (typeof imgs[0]==='string'?imgs[0]:'');
+ return imgs[0]?.url||(typeof imgs[0]==='string'?imgs[0]:'');
 }
-
 function totalStock(p){
  const s=p.sizes||{};
  return ['S','M','L','XL','XXL'].reduce((n,x)=>n+Number(s[x]||0),0);
 }
-
 async function loadProducts(){
  const box=document.getElementById('products');
- const {data,error}=await supabase
-  .from('products')
-  .select('*')
-  .order('created_at',{ascending:false});
-
- if(error){
-  box.innerHTML='<div class="empty">Unable to load products. Please try again later.</div>';
-  return;
- }
-
- products=data||[];
-
- if(!products.length){
-  box.innerHTML='<div class="empty">Our collection is coming soon.</div>';
-  return;
- }
-
- box.innerHTML=products.map(p=>{
-  const img=imageOf(p);
-  const stock=totalStock(p);
-
-  return `
-  <article class="product">
-   <img src="${safe(img)}" alt="${safe(p.name)}"
-   onerror="this.style.display='none'">
-   <div class="product-info">
-    <h3>${safe(p.name)}</h3>
-    <div class="price">${money(p.price)}</div>
+ try{
+  const {data,error}=await supabase.from('products').select('*').order('created_at',{ascending:false});
+  if(error)throw error;
+  products=data||[];
+  if(!products.length){box.innerHTML='<div class="empty">Our collection is coming soon.</div>';return;}
+  box.innerHTML=products.map(p=>{
+   const img=imageOf(p),stock=totalStock(p);
+   return `<article class="product">
+    ${img?`<img src="${safe(img)}" alt="${safe(p.name)}" onerror="this.style.display='none'">`:'<div class="empty">Image coming soon</div>'}
+    <div class="product-info"><h3>${safe(p.name)}</h3><div class="price">${money(p.price)}</div>
     <div class="stock">${stock>0?stock+' pieces available':'Currently out of stock'}</div>
-    <button onclick="openProduct('${safe(p.id)}')">
-    VIEW PRODUCT
-    </button>
-   </div>
-  </article>`;
- }).join('');
+    <button onclick="openProduct('${safe(p.id)}')">VIEW PRODUCT</button></div></article>`;
+  }).join('');
+ }catch(err){console.error(err);box.innerHTML='<div class="empty">Unable to load products. Check your connection and try again.</div>';}
 }
-
 window.openProduct=function(id){
- const p=products.find(x=>String(x.id)===String(id));
- if(!p)return;
-
+ const p=products.find(x=>String(x.id)===String(id));if(!p)return;
  const stock=p.sizes||{};
- const options=['S','M','L','XL','XXL']
-  .filter(s=>Number(stock[s]||0)>0)
-  .map(s=>`<option value="${s}">${s} — ${stock[s]} available</option>`)
-  .join('');
-
+ const options=['S','M','L','XL','XXL'].filter(s=>Number(stock[s]||0)>0).map(s=>`<option value="${s}">${s} — ${Number(stock[s])} available</option>`).join('');
  const img=imageOf(p);
-
  document.getElementById('productDetail').innerHTML=`
- <img src="${safe(img)}" alt="${safe(p.name)}">
- <h2>${safe(p.name)}</h2>
- <h3>${money(p.price)}</h3>
- <p>${safe(p.description)}</p>
+ ${img?`<img src="${safe(img)}" alt="${safe(p.name)}">`:''}
+ <h2>${safe(p.name)}</h2><h3>${money(p.price)}</h3><p>${safe(p.description)}</p>
  <p>Category: ${safe(p.category)}</p>
- ${options?
- `<select id="selectedSize">${options}</select>
- <button class="buy" onclick="addToCart('${safe(p.id)}')">ADD TO CART</button>`:
- '<p>Currently out of stock.</p>'}
- `;
-
+ ${options?`<label for="selectedSize">Select size</label><select id="selectedSize">${options}</select>
+ <button class="buy" onclick="addToCart('${safe(p.id)}')">ADD TO CART</button>`:'<p>Currently out of stock.</p>'}`;
  document.getElementById('modal').style.display='flex';
 };
-
 window.closeModal=()=>document.getElementById('modal').style.display='none';
-
 window.addToCart=function(id){
- const p=products.find(x=>String(x.id)===String(id));
- if(!p)return;
-
- const size=document.getElementById('selectedSize')?.value;
- if(!size)return;
-
+ const p=products.find(x=>String(x.id)===String(id));if(!p)return;
+ const size=document.getElementById('selectedSize')?.value;if(!size)return;
  const existing=cart.find(x=>String(x.id)===String(id)&&x.size===size);
  const available=Number((p.sizes||{})[size]||0);
-
- if(existing){
-  if(existing.quantity>=available){
-   alert('Maximum available stock reached.');
-   return;
-  }
-  existing.quantity++;
- }else{
-  cart.push({id:p.id,name:p.name,price:Number(p.price),size,quantity:1});
- }
-
- updateCart();
- closeModal();
- alert('Added to cart!');
+ if(existing){if(existing.quantity>=available){alert('Maximum available stock reached.');return;}existing.quantity++;}
+ else cart.push({id:p.id,name:p.name,price:Number(p.price),size,quantity:1});
+ updateCart();closeModal();alert('Added to cart!');
 };
-
 function updateCart(){
  const count=cart.reduce((n,x)=>n+x.quantity,0);
  document.getElementById('cartCount').textContent=count;
-
- document.getElementById('cartItems').innerHTML=cart.length?
- cart.map(x=>`
- <div>${safe(x.name)} — ${x.size} × ${x.quantity}
- <br>${money(x.price*x.quantity)}</div>
- `).join(''):
- 'Your cart is empty.';
-
+ document.getElementById('cartItems').innerHTML=cart.length?cart.map((x,i)=>`
+  <div class="cart-line"><div><strong>${safe(x.name)}</strong><br><small>Size: ${safe(x.size)} · ${money(x.price)} each</small>
+  <div class="qty"><button onclick="changeQty(${i},-1)">−</button><span>${x.quantity}</span><button onclick="changeQty(${i},1)">+</button></div></div>
+  <div><strong>${money(x.price*x.quantity)}</strong><br><button class="secondary" style="margin-top:8px;padding:5px 8px" onclick="removeItem(${i})">Remove</button></div></div>`).join(''):'Your cart is empty.';
  const total=cart.reduce((n,x)=>n+x.price*x.quantity,0);
- document.getElementById('cartTotal').textContent='Total: '+money(total);
+ document.getElementById('cartTotal').textContent=money(total);
+ document.getElementById('checkoutButton').disabled=!cart.length;
+ document.getElementById('checkoutButton').style.opacity=cart.length?'1':'.45';
 }
-
+window.changeQty=function(i,delta){
+ const item=cart[i];if(!item)return;
+ const p=products.find(x=>String(x.id)===String(item.id));
+ const available=Number((p?.sizes||{})[item.size]||0);
+ const next=item.quantity+delta;
+ if(next<1){cart.splice(i,1);}
+ else if(next>available){alert('Maximum available stock reached.');return;}
+ else item.quantity=next;
+ updateCart();
+};
+window.removeItem=function(i){cart.splice(i,1);updateCart();};
 window.openCart=()=>document.getElementById('cartPanel').style.display='flex';
 window.closeCart=()=>document.getElementById('cartPanel').style.display='none';
-
+window.openCheckout=function(){
+ if(!cart.length){alert('Your cart is empty.');return;}
+ const total=cart.reduce((n,x)=>n+x.price*x.quantity,0);
+ document.getElementById('checkoutSummary').innerHTML=
+  cart.map(x=>`<p>${safe(x.name)} · ${safe(x.size)} × ${x.quantity} — ${money(x.price*x.quantity)}</p>`).join('')+
+  `<div class="total-row"><span>Test total</span><span>${money(total)}</span></div>`;
+ document.getElementById('cartPanel').style.display='none';
+ document.getElementById('checkoutPanel').style.display='flex';
+ document.getElementById('testSuccess').style.display='none';
+};
+window.closeCheckout=()=>document.getElementById('checkoutPanel').style.display='none';
+document.getElementById('checkoutForm').addEventListener('submit',e=>{
+ e.preventDefault();
+ if(!cart.length)return;
+ // Deliberately local-only preview: no network request, database write, order creation, or payment.
+ const ref='VISO-TEST-'+Date.now().toString().slice(-6);
+ document.getElementById('testSuccess').innerHTML=
+  `<strong>Test preview generated: ${ref}</strong><br>No order was placed and no payment was taken. Your entered details were not saved or sent.`;
+ document.getElementById('testSuccess').style.display='block';
+ document.getElementById('checkoutForm').reset();
+});
 loadProducts();
+updateCart();
 </script>
-
 </body>
 </html>
